@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Animated Rain Background</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(
+          135deg,
+          #1a1a2e 0%,
+          #16213e 50%,
+          #0f3460 100%
+        );
+        overflow: hidden;
+        font-family: "Arial", sans-serif;
+      }
+
+      canvas {
+        display: block;
+        cursor: crosshair;
+      }
+
+      .controls {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 15px;
+        border-radius: 10px;
+        color: white;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        opacity: 0;
+        transform: translateX(-20px);
+        transition: all 0.3s ease;
+        pointer-events: none;
+      }
+
+      .controls:hover,
+      .controls.show {
+        opacity: 1;
+        transform: translateX(0);
+        pointer-events: all;
+      }
+
+      .controls-trigger {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        width: 50px;
+        height: 50px;
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+      }
+
+      .controls-trigger:hover {
+        background: rgba(0, 0, 0, 0.8);
+        transform: scale(1.1);
+      }
+
+      .controls-trigger:hover + .controls {
+        opacity: 1;
+        transform: translateX(0);
+        pointer-events: all;
+      }
+
+      .control-group {
+        margin-bottom: 10px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      input[type="range"] {
+        width: 150px;
+        margin-right: 10px;
+      }
+
+      .value {
+        font-weight: bold;
+        color: #4fc3f7;
+      }
+
+      .info {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 10px;
+        border-radius: 5px;
+        color: white;
+        font-size: 12px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.3s ease;
+        pointer-events: none;
+      }
+
+      .info:hover,
+      .info.show {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: all;
+      }
+
+      .info-trigger {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        width: 40px;
+        height: 40px;
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+      }
+
+      .info-trigger:hover {
+        background: rgba(0, 0, 0, 0.8);
+        transform: scale(1.1);
+      }
+
+      .info-trigger:hover + .info {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: all;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="rainCanvas"></canvas>
+
+    <div class="controls-trigger">⚙️</div>
+    <div class="controls">
+      <div class="control-group">
+        <label
+          >Rain Intensity:
+          <span class="value" id="intensityValue">300</span></label
+        >
+        <input type="range" id="intensity" min="50" max="800" value="300" />
+      </div>
+      <div class="control-group">
+        <label
+          >Wind Strength: <span class="value" id="windValue">2</span></label
+        >
+        <input type="range" id="wind" min="0" max="8" value="2" step="0.5" />
+      </div>
+      <div class="control-group">
+        <label
+          >Lightning: <span class="value" id="lightningValue">On</span></label
+        >
+        <input type="checkbox" id="lightning" checked />
+      </div>
+      <div class="control-group">
+        <label
+          >Cloud Speed:
+          <span class="value" id="cloudSpeedValue">1.0</span></label
+        >
+        <input
+          type="range"
+          id="cloudSpeed"
+          min="0"
+          max="3"
+          value="1.0"
+          step="0.1"
+        />
+      </div>
+      <div class="control-group">
+        <label
+          >Cloud Density:
+          <span class="value" id="cloudDensityValue">8</span></label
+        >
+        <input type="range" id="cloudDensity" min="3" max="15" value="8" />
+      </div>
+      <div class="control-group">
+        <label
+          >Mist Amount: <span class="value" id="mistAmountValue">5</span></label
+        >
+        <input type="range" id="mistAmount" min="0" max="10" value="5" />
+      </div>
+      <div class="control-group">
+        <label
+          >Atmospheric Particles:
+          <span class="value" id="particlesValue">50</span></label
+        >
+        <input type="range" id="particles" min="0" max="150" value="50" />
+      </div>
+      <div class="control-group">
+        <label
+          >Storm Darkness:
+          <span class="value" id="darknessValue">0.5</span></label
+        >
+        <input
+          type="range"
+          id="darkness"
+          min="0"
+          max="1"
+          value="0.5"
+          step="0.1"
+        />
+      </div>
+      <div class="control-group">
+        <label
+          >Color Temperature:
+          <span class="value" id="temperatureValue">0</span></label
+        >
+        <input type="range" id="temperature" min="-50" max="50" value="0" />
+      </div>
+    </div>
+
+    <div class="info-trigger">?</div>
+    <div class="info">
+      Click anywhere to create lightning strikes!<br />
+      Use controls to adjust the storm intensity.
+    </div>
+
+    <script>
+      const canvas = document.getElementById("rainCanvas");
+      const ctx = canvas.getContext("2d");
+
+      // Set canvas size
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      resizeCanvas();
+      window.addEventListener("resize", resizeCanvas);
+
+      // Rain settings
+      let settings = {
+        rainCount: 300,
+        windStrength: 2,
+        lightningEnabled: true,
+        cloudSpeed: 1.0,
+        cloudDensity: 8,
+        mistAmount: 5,
+        particleCount: 50,
+        stormDarkness: 0.5,
+        colorTemperature: 0,
+      };
+
+      // Rain drops array
+      let raindrops = [];
+      let splashes = [];
+      let lightningFlashes = [];
+
+      // Lightning system
+      let lightningTimer = 0;
+      let isLightning = false;
+      let lightningBrightness = 0;
+
+      // Rain drop class
+      class Raindrop {
+        constructor() {
+          this.reset();
+          this.y = Math.random() * canvas.height; // Start at random positions initially
+        }
+
+        reset() {
+          // Calculate total horizontal displacement based on wind and fall time
+          const fallTime = canvas.height / (Math.random() * 8 + 12);
+          const windDisplacement = settings.windStrength * fallTime;
+
+          // Spawn raindrops further left to compensate for wind displacement
+          this.x =
+            Math.random() * (canvas.width + 400) - 200 - windDisplacement;
+          this.y = -Math.random() * 100;
+          this.length = Math.random() * 15 + 10;
+          this.speed = Math.random() * 8 + 12;
+          this.opacity = Math.random() * 0.6 + 0.4;
+          this.angle = Math.random() * 0.2 - 0.1;
+        }
+
+        update() {
+          this.x += settings.windStrength + this.angle;
+          this.y += this.speed;
+
+          // Reset when off screen
+          if (this.y > canvas.height + 10 || this.x > canvas.width + 100) {
+            // Create splash effect occasionally
+            if (this.y > canvas.height - 5 && Math.random() < 0.3) {
+              this.createSplash();
+            }
+            this.reset();
+          }
+        }
+
+        createSplash() {
+          for (let i = 0; i < 3; i++) {
+            splashes.push(new Splash(this.x, canvas.height));
+          }
+        }
+
+        draw() {
+          ctx.strokeStyle = `rgba(174, 194, 224, ${this.opacity})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(this.x, this.y);
+          ctx.lineTo(
+            this.x - settings.windStrength - this.angle,
+            this.y - this.length
+          );
+          ctx.stroke();
+        }
+      }
+
+      // Splash class
+      class Splash {
+        constructor(x, y) {
+          this.x = x;
+          this.y = y;
+          this.vx = (Math.random() - 0.5) * 6;
+          this.vy = -Math.random() * 4 - 2;
+          this.life = 1.0;
+          this.decay = 0.05;
+        }
+
+        update() {
+          this.x += this.vx;
+          this.y += this.vy;
+          this.vy += 0.2; // gravity
+          this.life -= this.decay;
+        }
+
+        draw() {
+          if (this.life > 0) {
+            ctx.fillStyle = `rgba(174, 194, 224, ${this.life * 0.6})`;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+
+      // Lightning class
+      class Lightning {
+        constructor(startX, startY, endX, endY) {
+          this.points = this.generateLightningPath(startX, startY, endX, endY);
+          this.brightness = 1.0;
+          this.decay = 0.05;
+          this.branches = [];
+
+          // Create branches
+          for (let i = 0; i < this.points.length - 1; i += 3) {
+            if (Math.random() < 0.3) {
+              const branchStart = this.points[i];
+              const angle = Math.random() * Math.PI * 2;
+              const length = Math.random() * 100 + 50;
+              const branchEnd = {
+                x: branchStart.x + Math.cos(angle) * length,
+                y: branchStart.y + Math.sin(angle) * length,
+              };
+              this.branches.push(
+                this.generateLightningPath(
+                  branchStart.x,
+                  branchStart.y,
+                  branchEnd.x,
+                  branchEnd.y
+                )
+              );
+            }
+          }
+        }
+
+        generateLightningPath(startX, startY, endX, endY) {
+          const points = [{ x: startX, y: startY }];
+          const segments = 20;
+          const dx = (endX - startX) / segments;
+          const dy = (endY - startY) / segments;
+
+          for (let i = 1; i < segments; i++) {
+            const x = startX + dx * i + (Math.random() - 0.5) * 40;
+            const y = startY + dy * i + (Math.random() - 0.5) * 20;
+            points.push({ x, y });
+          }
+          points.push({ x: endX, y: endY });
+
+          return points;
+        }
+
+        update() {
+          this.brightness -= this.decay;
+        }
+
+        draw() {
+          if (this.brightness > 0) {
+            const alpha = this.brightness;
+
+            // Draw main bolt
+            this.drawBolt(this.points, alpha, 3);
+
+            // Draw branches
+            this.branches.forEach((branch) => {
+              this.drawBolt(branch, alpha * 0.7, 2);
+            });
+          }
+        }
+
+        drawBolt(points, alpha, width) {
+          // Outer glow
+          ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.3})`;
+          ctx.lineWidth = width * 3;
+          ctx.lineCap = "round";
+          ctx.beginPath();
+          for (let i = 0; i < points.length - 1; i++) {
+            ctx.moveTo(points[i].x, points[i].y);
+            ctx.lineTo(points[i + 1].x, points[i + 1].y);
+          }
+          ctx.stroke();
+
+          // Inner bolt
+          ctx.strokeStyle = `rgba(200, 230, 255, ${alpha})`;
+          ctx.lineWidth = width;
+          ctx.beginPath();
+          for (let i = 0; i < points.length - 1; i++) {
+            ctx.moveTo(points[i].x, points[i].y);
+            ctx.lineTo(points[i + 1].x, points[i + 1].y);
+          }
+          ctx.stroke();
+        }
+      }
+
+      // Atmospheric particles
+      let atmosphericParticles = [];
+
+      // Initialize atmospheric particles
+      function initAtmosphericParticles() {
+        atmosphericParticles = [];
+        for (let i = 0; i < settings.particleCount; i++) {
+          atmosphericParticles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            vx: (Math.random() - 0.5) * 0.5,
+            vy: (Math.random() - 0.5) * 0.3,
+            size: Math.random() * 2 + 0.5,
+            opacity: Math.random() * 0.3 + 0.1,
+            life: Math.random(),
+          });
+        }
+      }
+
+      function drawAtmosphericParticles() {
+        if (settings.particleCount === 0) return;
+
+        ctx.save();
+
+        atmosphericParticles.forEach((particle) => {
+          particle.x += particle.vx + settings.windStrength * 0.1;
+          particle.y += particle.vy;
+          particle.life += 0.01;
+
+          // Wrap around screen
+          if (particle.x > canvas.width + 10) particle.x = -10;
+          if (particle.x < -10) particle.x = canvas.width + 10;
+          if (particle.y > canvas.height + 10) particle.y = -10;
+          if (particle.y < -10) particle.y = canvas.height + 10;
+
+          // Floating motion
+          particle.x += Math.sin(particle.life) * 0.5;
+          particle.y += Math.cos(particle.life * 0.7) * 0.3;
+
+          const alpha =
+            particle.opacity * (0.5 + Math.sin(particle.life * 2) * 0.5);
+          ctx.fillStyle = `rgba(180, 190, 210, ${alpha})`;
+          ctx.beginPath();
+          ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        ctx.restore();
+      }
+
+      // Initialize raindrops
+      function initRain() {
+        raindrops = [];
+        for (let i = 0; i < settings.rainCount; i++) {
+          raindrops.push(new Raindrop());
+        }
+      }
+
+      // Initialize all systems
+      function initAll() {
+        initRain();
+        initAtmosphericParticles();
+      }
+
+      // Create random lightning
+      function createRandomLightning() {
+        if (!settings.lightningEnabled) return;
+
+        const startX = Math.random() * canvas.width;
+        const startY = 0;
+        const endX = Math.random() * canvas.width;
+        const endY = Math.random() * canvas.height * 0.7 + canvas.height * 0.3;
+
+        lightningFlashes.push(new Lightning(startX, startY, endX, endY));
+        lightningBrightness = 1.0;
+        isLightning = true;
+      }
+
+      // Create lightning on click
+      canvas.addEventListener("click", (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        lightningFlashes.push(
+          new Lightning(x, 0, x + (Math.random() - 0.5) * 200, y)
+        );
+        lightningBrightness = 1.0;
+        isLightning = true;
+      });
+
+      // Dynamic background variables
+      let time = 0;
+      let cloudOffset = 0;
+      let stormIntensity = 0.5;
+
+      // Dynamic background function
+      function drawDynamicBackground() {
+        time += 0.01;
+        cloudOffset += 0.5 * settings.cloudSpeed;
+
+        // Base gradient that shifts with storm intensity
+        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        const stormFactor = stormIntensity + Math.sin(time * 0.5) * 0.2;
+        const tempShift = settings.colorTemperature;
+
+        // Dynamic color shifts with temperature control
+        const topColor = `hsl(${220 + Math.sin(time) * 10 + tempShift * 0.5}, ${
+          30 + stormFactor * 20
+        }%, ${(10 + stormFactor * 5) * (1 - settings.stormDarkness * 0.5)}%)`;
+        const midColor = `hsl(${
+          210 + Math.sin(time * 0.7) * 15 + tempShift * 0.7
+        }, ${35 + stormFactor * 15}%, ${
+          (15 + stormFactor * 8) * (1 - settings.stormDarkness * 0.4)
+        }%)`;
+        const bottomColor = `hsl(${
+          200 + Math.sin(time * 1.2) * 20 + tempShift
+        }, ${40 + stormFactor * 10}%, ${
+          (20 + stormFactor * 10) * (1 - settings.stormDarkness * 0.3)
+        }%)`;
+
+        gradient.addColorStop(0, topColor);
+        gradient.addColorStop(0.4, midColor);
+        gradient.addColorStop(1, bottomColor);
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Add moving cloud layers
+        drawClouds();
+
+        // Add subtle fog/mist effect
+        drawMist();
+
+        // Add distant lightning glow
+        drawDistantLightning();
+      }
+
+      // Cloud system
+      function drawClouds() {
+        ctx.save();
+
+        // Multiple cloud layers for depth
+        for (let layer = 0; layer < 3; layer++) {
+          const layerAlpha = (0.1 - layer * 0.02) * (settings.cloudDensity / 8);
+          const layerSpeed = (layer + 1) * 0.3;
+          const layerScale = 1 + layer * 0.5;
+
+          ctx.globalAlpha = layerAlpha;
+
+          for (let i = 0; i < settings.cloudDensity; i++) {
+            const spacing = canvas.width / settings.cloudDensity + 100;
+            const x =
+              ((i * spacing - cloudOffset * layerSpeed) %
+                (canvas.width + 400)) -
+              200;
+            const y = 50 + layer * 30 + Math.sin(time + i) * 20;
+            const size = 80 + Math.sin(time * 0.5 + i) * 20;
+
+            drawCloud(x, y, size * layerScale);
+          }
+        }
+
+        ctx.restore();
+      }
+
+      // Individual cloud drawing
+      function drawCloud(x, y, size) {
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, size);
+        gradient.addColorStop(0, "rgba(100, 100, 120, 0.3)");
+        gradient.addColorStop(0.7, "rgba(60, 60, 80, 0.2)");
+        gradient.addColorStop(1, "rgba(40, 40, 60, 0.1)");
+
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+
+        // Create fluffy cloud shape
+        for (let i = 0; i < 6; i++) {
+          const angle = (i / 6) * Math.PI * 2;
+          const radius = size * (0.8 + Math.sin(time * 2 + i) * 0.2);
+          const cloudX = x + Math.cos(angle) * radius * 0.5;
+          const cloudY = y + Math.sin(angle) * radius * 0.3;
+
+          if (i === 0) {
+            ctx.moveTo(cloudX, cloudY);
+          } else {
+            ctx.quadraticCurveTo(
+              x + Math.cos(angle - 0.5) * radius * 0.7,
+              y + Math.sin(angle - 0.5) * radius * 0.5,
+              cloudX,
+              cloudY
+            );
+          }
+        }
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // Mist/fog effect
+      function drawMist() {
+        if (settings.mistAmount === 0) return;
+
+        ctx.save();
+        ctx.globalAlpha = 0.05 * (settings.mistAmount / 5);
+
+        for (let i = 0; i < settings.mistAmount; i++) {
+          const x =
+            ((i * 150 - cloudOffset * 0.2) % (canvas.width + 200)) - 100;
+          const y = canvas.height * 0.7 + Math.sin(time + i) * 30;
+          const size = 200 + Math.sin(time * 0.3 + i) * 50;
+
+          const gradient = ctx.createRadialGradient(x, y, 0, x, y, size);
+          gradient.addColorStop(0, "rgba(150, 150, 170, 0.4)");
+          gradient.addColorStop(1, "rgba(100, 100, 120, 0)");
+
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(x, y, size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.restore();
+      }
+
+      // Distant lightning effect
+      function drawDistantLightning() {
+        if (Math.sin(time * 0.1) > 0.95 && settings.lightningEnabled) {
+          ctx.save();
+          ctx.globalAlpha = 0.1 + Math.random() * 0.1;
+
+          const gradient = ctx.createRadialGradient(
+            canvas.width * 0.8,
+            canvas.height * 0.2,
+            0,
+            canvas.width * 0.8,
+            canvas.height * 0.2,
+            canvas.width * 0.3
+          );
+          gradient.addColorStop(0, "rgba(255, 255, 255, 0.3)");
+          gradient.addColorStop(0.5, "rgba(200, 220, 255, 0.1)");
+          gradient.addColorStop(1, "rgba(100, 150, 255, 0)");
+
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(
+            canvas.width * 0.8,
+            canvas.height * 0.2,
+            canvas.width * 0.3,
+            0,
+            Math.PI * 2
+          );
+          ctx.fill();
+
+          ctx.restore();
+        }
+      }
+
+      // Animation loop
+      function animate() {
+        // Draw dynamic background
+        drawDynamicBackground();
+
+        // Update storm intensity based on rain count
+        const targetIntensity = (settings.rainCount - 50) / 750;
+        stormIntensity += (targetIntensity - stormIntensity) * 0.02;
+
+        // Lightning flash effect
+        if (isLightning) {
+          const flashAlpha = lightningBrightness * 0.15;
+          ctx.fillStyle = `rgba(255, 255, 255, ${flashAlpha})`;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          lightningBrightness -= 0.05;
+          if (lightningBrightness <= 0) {
+            isLightning = false;
+          }
+        }
+
+        // Add atmospheric particles
+        drawAtmosphericParticles();
+
+        // Update and draw raindrops
+        raindrops.forEach((drop) => {
+          drop.update();
+          drop.draw();
+        });
+
+        // Update and draw lightning
+        lightningFlashes = lightningFlashes.filter((flash) => {
+          flash.update();
+          flash.draw();
+          return flash.brightness > 0;
+        });
+
+        // Update and draw splashes
+        splashes = splashes.filter((splash) => {
+          splash.update();
+          splash.draw();
+          return splash.life > 0;
+        });
+
+        // Random lightning
+        lightningTimer++;
+        if (
+          lightningTimer > 300 &&
+          Math.random() < 0.003 &&
+          settings.lightningEnabled
+        ) {
+          createRandomLightning();
+          lightningTimer = 0;
+        }
+
+        requestAnimationFrame(animate);
+      }
+
+      // Controls
+      const controls = {
+        intensity: document.getElementById("intensity"),
+        wind: document.getElementById("wind"),
+        lightning: document.getElementById("lightning"),
+        cloudSpeed: document.getElementById("cloudSpeed"),
+        cloudDensity: document.getElementById("cloudDensity"),
+        mistAmount: document.getElementById("mistAmount"),
+        particles: document.getElementById("particles"),
+        darkness: document.getElementById("darkness"),
+        temperature: document.getElementById("temperature"),
+      };
+
+      // Set up all control event listeners
+      controls.intensity.addEventListener("input", (e) => {
+        settings.rainCount = parseInt(e.target.value);
+        document.getElementById("intensityValue").textContent =
+          settings.rainCount;
+        initRain();
+      });
+
+      controls.wind.addEventListener("input", (e) => {
+        settings.windStrength = parseFloat(e.target.value);
+        document.getElementById("windValue").textContent =
+          settings.windStrength;
+      });
+
+      controls.lightning.addEventListener("change", (e) => {
+        settings.lightningEnabled = e.target.checked;
+        document.getElementById("lightningValue").textContent =
+          settings.lightningEnabled ? "On" : "Off";
+      });
+
+      controls.cloudSpeed.addEventListener("input", (e) => {
+        settings.cloudSpeed = parseFloat(e.target.value);
+        document.getElementById("cloudSpeedValue").textContent =
+          settings.cloudSpeed;
+      });
+
+      controls.cloudDensity.addEventListener("input", (e) => {
+        settings.cloudDensity = parseInt(e.target.value);
+        document.getElementById("cloudDensityValue").textContent =
+          settings.cloudDensity;
+      });
+
+      controls.mistAmount.addEventListener("input", (e) => {
+        settings.mistAmount = parseInt(e.target.value);
+        document.getElementById("mistAmountValue").textContent =
+          settings.mistAmount;
+      });
+
+      controls.particles.addEventListener("input", (e) => {
+        settings.particleCount = parseInt(e.target.value);
+        document.getElementById("particlesValue").textContent =
+          settings.particleCount;
+        initAtmosphericParticles();
+      });
+
+      controls.darkness.addEventListener("input", (e) => {
+        settings.stormDarkness = parseFloat(e.target.value);
+        document.getElementById("darknessValue").textContent =
+          settings.stormDarkness;
+      });
+
+      controls.temperature.addEventListener("input", (e) => {
+        settings.colorTemperature = parseInt(e.target.value);
+        document.getElementById("temperatureValue").textContent =
+          settings.colorTemperature;
+      });
+
+      // Start the animation
+      initAll();
+      animate();
+    </script>
+  </body>
+</html>

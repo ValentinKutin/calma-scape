@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Starfield with Galaxies</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background: #000;
+        overflow: hidden;
+        font-family: Arial, sans-serif;
+      }
+      canvas {
+        display: block;
+        background: #000;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+
+    <script>
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+
+      let stars = [];
+      let galaxies = [];
+      let time = 0;
+      let starSpawnTimer = 0;
+
+      // Set canvas size
+      function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        // Only recreate galaxies if they exist
+        if (galaxies && galaxies.length > 0) {
+          createGalaxies();
+        }
+      }
+      resize();
+      window.addEventListener("resize", resize);
+
+      // Create a new star
+      function createNewStar() {
+        return {
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          size: Math.random() * 2 + 0.5,
+          brightness: Math.random(),
+          twinkle: Math.random() * 0.02 + 0.01,
+          color:
+            Math.random() > 0.8
+              ? `hsl(${Math.random() * 60 + 180}, 60%, 80%)`
+              : "#ffffff",
+          vx: (Math.random() - 0.5) * 0.5, // horizontal velocity
+          vy: (Math.random() - 0.5) * 0.3, // vertical velocity
+          life: 1.0,
+          fadeRate: Math.random() * 0.002 + 0.001,
+        };
+      }
+
+      // Create initial stars
+      function createStars() {
+        stars = [];
+        for (let i = 0; i < 150; i++) {
+          stars.push(createNewStar());
+        }
+      }
+
+      // Create galaxies positioned within screen bounds
+      function createGalaxies() {
+        galaxies = [];
+        for (let i = 0; i < 3; i++) {
+          const margin = 100; // Keep galaxies away from edges
+          galaxies.push({
+            x: margin + Math.random() * (canvas.width - margin * 2),
+            y: margin + Math.random() * (canvas.height - margin * 2),
+            size: Math.random() * 80 + 60,
+            rotation: 0,
+            rotSpeed: (Math.random() - 0.5) * 0.008,
+            arms: Math.floor(Math.random() * 3) + 2,
+            hue: Math.random() * 360,
+            opacity: 0.3 + Math.random() * 0.4,
+          });
+        }
+      }
+
+      // Update star position and properties
+      function updateStar(star) {
+        // Move star
+        star.x += star.vx;
+        star.y += star.vy;
+
+        // Gentle floating motion
+        star.x += Math.sin(time * 0.5 + star.y * 0.01) * 0.1;
+        star.y += Math.cos(time * 0.3 + star.x * 0.01) * 0.05;
+
+        // Fade out over time
+        star.life -= star.fadeRate;
+
+        // Wrap around screen edges
+        if (star.x < -10) star.x = canvas.width + 10;
+        if (star.x > canvas.width + 10) star.x = -10;
+        if (star.y < -10) star.y = canvas.height + 10;
+        if (star.y > canvas.height + 10) star.y = -10;
+
+        return star.life > 0;
+      }
+
+      // Draw a single star
+      function drawStar(star) {
+        const twinkle =
+          Math.abs(Math.sin(time * star.twinkle + star.brightness * 10)) * 0.7 +
+          0.3;
+        const alpha = twinkle * star.life;
+
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = star.color;
+        ctx.shadowColor = star.color;
+        ctx.shadowBlur = star.size * 3;
+
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Add cross sparkle for larger stars
+        if (star.size > 1.5) {
+          ctx.strokeStyle = star.color;
+          ctx.lineWidth = 0.5;
+          ctx.globalAlpha = alpha * 0.8;
+          ctx.beginPath();
+          ctx.moveTo(star.x - star.size * 2, star.y);
+          ctx.lineTo(star.x + star.size * 2, star.y);
+          ctx.moveTo(star.x, star.y - star.size * 2);
+          ctx.lineTo(star.x, star.y + star.size * 2);
+          ctx.stroke();
+        }
+
+        ctx.restore();
+      }
+
+      // Draw a galaxy
+      function drawGalaxy(galaxy) {
+        ctx.save();
+        ctx.translate(galaxy.x, galaxy.y);
+        ctx.rotate(galaxy.rotation);
+        ctx.globalAlpha = galaxy.opacity;
+
+        // Galaxy core
+        const coreGradient = ctx.createRadialGradient(
+          0,
+          0,
+          0,
+          0,
+          0,
+          galaxy.size * 0.4
+        );
+        coreGradient.addColorStop(0, `hsla(${galaxy.hue}, 80%, 70%, 1)`);
+        coreGradient.addColorStop(0.4, `hsla(${galaxy.hue}, 60%, 50%, 0.6)`);
+        coreGradient.addColorStop(1, "transparent");
+
+        ctx.fillStyle = coreGradient;
+        ctx.beginPath();
+        ctx.arc(0, 0, galaxy.size * 0.4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Spiral arms
+        for (let arm = 0; arm < galaxy.arms; arm++) {
+          const armAngle = ((Math.PI * 2) / galaxy.arms) * arm;
+
+          ctx.save();
+          ctx.rotate(armAngle);
+
+          // Create spiral arm gradient
+          const armGradient = ctx.createLinearGradient(0, 0, galaxy.size, 0);
+          armGradient.addColorStop(0, `hsla(${galaxy.hue}, 50%, 60%, 0.8)`);
+          armGradient.addColorStop(0.5, `hsla(${galaxy.hue}, 40%, 40%, 0.4)`);
+          armGradient.addColorStop(1, "transparent");
+
+          ctx.strokeStyle = armGradient;
+          ctx.lineWidth = 6;
+
+          ctx.beginPath();
+          for (let r = 20; r < galaxy.size; r += 3) {
+            const spiralAngle = r * 0.08 + galaxy.rotation * 2;
+            const x = Math.cos(spiralAngle) * r;
+            const y = Math.sin(spiralAngle) * r * 0.4;
+
+            if (r === 20) {
+              ctx.moveTo(x, y);
+            } else {
+              ctx.lineTo(x, y);
+            }
+          }
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        galaxy.rotation += galaxy.rotSpeed;
+        ctx.restore();
+      }
+
+      // Animation loop
+      function animate() {
+        time += 0.016;
+        starSpawnTimer += 0.016;
+
+        // Clear canvas with space background
+        const bgGradient = ctx.createRadialGradient(
+          canvas.width / 2,
+          canvas.height / 2,
+          0,
+          canvas.width / 2,
+          canvas.height / 2,
+          Math.max(canvas.width, canvas.height)
+        );
+        bgGradient.addColorStop(0, "#001a2e");
+        bgGradient.addColorStop(0.3, "#000f1a");
+        bgGradient.addColorStop(0.7, "#000408");
+        bgGradient.addColorStop(1, "#000000");
+
+        ctx.fillStyle = bgGradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Add new stars automatically
+        if (starSpawnTimer > 0.1) {
+          // Add new star every 0.1 seconds
+          stars.push(createNewStar());
+          starSpawnTimer = 0;
+        }
+
+        // Update and filter stars
+        stars = stars.filter(updateStar);
+
+        // Keep a minimum number of stars
+        if (stars.length < 100) {
+          for (let i = 0; i < 10; i++) {
+            stars.push(createNewStar());
+          }
+        }
+
+        // Draw galaxies first (background)
+        galaxies.forEach(drawGalaxy);
+
+        // Draw stars (foreground)
+        stars.forEach(drawStar);
+
+        requestAnimationFrame(animate);
+      }
+
+      // Add bright star on click
+      canvas.addEventListener("click", (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const brightStar = createNewStar();
+        brightStar.x = x;
+        brightStar.y = y;
+        brightStar.size = Math.random() * 3 + 2;
+        brightStar.color = "#ffffff";
+        brightStar.life = 2.0; // Brighter stars last longer
+        brightStar.fadeRate = 0.0005;
+        stars.push(brightStar);
+      });
+
+      // Initialize and start
+      createStars();
+      createGalaxies();
+      animate();
+
+      console.log(
+        "Starfield initialized with",
+        stars.length,
+        "stars and",
+        galaxies.length,
+        "galaxies"
+      );
+    </script>
+  </body>
+</html>

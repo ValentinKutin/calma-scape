@@ -1,0 +1,17 @@
+body {
+  font-family: Arial, sans-serif;
+}
+
+h1 {
+  font-weight: bold;
+  text-align: center;
+}
+
+#screensaver-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+#screensaver-list li {
+  margin-bottom: 10px;
+}
