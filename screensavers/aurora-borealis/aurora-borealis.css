@@ -24,28 +24,6 @@ body {
   z-index: -1; /* Ensure it's behind other content */
 }
 
-#back-link-container {
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  z-index: 100; /* Ensure it's on top */
-  opacity: 0; /* Hidden by default */
-  transition: opacity 0.5s ease-in-out; /* Smooth transition */
-}
-
-#back-link-container a {
-  color: white;
-  text-decoration: none;
-  font-size: 1.2em;
-  background-color: rgba(0, 0, 0, 0.5);
-  padding: 10px 15px;
-  border-radius: 5px;
-}
-
-#back-link-container a:hover {
-  background-color: rgba(0, 0, 0, 0.7);
-}
-
 @keyframes aurora-animation {
   0% {
     background-position: 0% 0%;
@@ -55,6 +33,13 @@ body {
   }
 }
 
-body:hover #back-link-container {
-  opacity: 1;
+#aurora-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(8px) brightness(1.2) drop-shadow(0 0 60px #7fffd4);
 }
