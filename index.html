@@ -7,50 +7,114 @@
   <title>Screensavers</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
       background-color: #f4f4f4;
       color: #333;
     }
 
-    h1 {
+    header {
+      background: #0056b3;
+      color: #fff;
+      padding: 32px 0 16px 0;
+      text-align: center;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .screensaver-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 32px;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 16px 48px 16px;
+    }
+
+    .screensaver-card {
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      padding: 20px 18px 18px 18px;
+      text-align: center;
+      transition: box-shadow 0.2s, transform 0.2s;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .screensaver-card:link,
+    .screensaver-card:visited,
+    .screensaver-card:hover,
+    .screensaver-card:active {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .screensaver-card:hover {
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.16);
+      transform: translateY(-4px) scale(1.03);
+    }
+
+    .thumbnail {
+      width: 100%;
+      max-width: 200px;
+      border-radius: 8px;
+      margin-bottom: 14px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+      background: #e0e7ef;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+    }
+
+    .title {
+      font-size: 1.18em;
+      font-weight: bold;
+      margin-bottom: 7px;
       color: #0056b3;
     }
 
-    ul {
-      list-style-type: none;
-      padding: 0;
+    .desc {
+      font-size: 1em;
+      color: #555;
+      margin-bottom: 0;
     }
 
-    li {
-      margin-bottom: 10px;
-    }
+    @media (max-width: 600px) {
+      header {
+        font-size: 1.3em;
+        padding: 20px 0 10px 0;
+      }
 
-    a {
-      color: #007bff;
-      text-decoration: none;
-      font-size: 1.2em;
-    }
-
-    a:hover {
-      text-decoration: underline;
+      .screensaver-card {
+        padding: 14px 8px 12px 8px;
+      }
     }
   </style>
 </head>
 
 <body>
-  <h1>Available Screensavers</h1>
-  <ul>
-    <li>
-      <a href="screensavers/animated-rain/animated-rain-background.html">Animated Rain Background</a>
-    </li>
-    <li>
-      <a href="screensavers/starfield/starfield-with-galaxies.html">Starfield with Galaxies</a>
-    </li>
-    <li>
-      <a href="screensavers/aurora-borealis/aurora-borealis.html">Aurora Borealis</a>
-    </li>
-  </ul>
+  <header>
+    <h1>Available Screensavers</h1>
+    <p style="font-size:1.1em; margin-top:8px; color:#e0e0e0;">Choose a screensaver to preview and enjoy!</p>
+  </header>
+  <div class="screensaver-grid">
+    <a class="screensaver-card" href="screensavers/animated-rain/animated-rain-background.html">
+      <img src="https://placehold.co/320x180/8ecae6/023047?text=Rain" alt="Animated Rain" class="thumbnail" />
+      <div class="title">Animated Rain Background</div>
+      <div class="desc">A calming animated rain effect for your screen.</div>
+    </a>
+    <a class="screensaver-card" href="screensavers/starfield/starfield-with-galaxies.html">
+      <img src="https://placehold.co/320x180/22223b/fff?text=Starfield" alt="Starfield with Galaxies"
+        class="thumbnail" />
+      <div class="title">Starfield with Galaxies</div>
+      <div class="desc">Fly through a field of stars and distant galaxies.</div>
+    </a>
+    <a class="screensaver-card" href="screensavers/aurora-borealis/aurora-borealis.html">
+      <img src="https://placehold.co/320x180/4361ee/fff?text=Aurora" alt="Aurora Borealis" class="thumbnail" />
+      <div class="title">Aurora Borealis</div>
+      <div class="desc">Watch the mesmerizing northern lights dance.</div>
+    </a>
+  </div>
 </body>
 
 </html>
