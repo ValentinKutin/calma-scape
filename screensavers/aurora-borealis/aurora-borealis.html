@@ -10,6 +10,18 @@
 
 <body>
   <div id="screensaver-display"></div>
+  <div id="aurora-controls">
+    <label>Speed: <input type="range" id="speed-slider" min="0.01" max="0.3" step="0.01" value="0.12"></label>
+    <label>Amplitude: <input type="range" id="amplitude-slider" min="10" max="200" step="1" value="60"></label>
+    <label>Brightness: <input type="range" id="brightness-slider" min="0.2" max="2" step="0.01" value="1.2"></label>
+    <label>Blur: <input type="range" id="blur-slider" min="0" max="32" step="1" value="8"></label>
+    <label>Number of Bands: <input type="number" id="bands-count" min="1" max="6" value="3"></label>
+    <div id="color-pickers">
+      <label>Band 1 Color: <input type="color" id="color1" value="#7fffd4"></label>
+      <label>Band 2 Color: <input type="color" id="color2" value="#00ffff"></label>
+      <label>Band 3 Color: <input type="color" id="color3" value="#ff00ff"></label>
+    </div>
+  </div>
   <canvas id="aurora-canvas"></canvas>
   <script src="aurora-borealis.js"></script>
 </body>
